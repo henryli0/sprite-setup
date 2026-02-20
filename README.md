@@ -5,7 +5,7 @@ Setup script for new Sprite VMs.
 ## Usage
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/henryli0/sprite-setupg/main/setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/henryli0/sprite-setup/main/setup.sh | bash
 ```
 
 ## What it does
