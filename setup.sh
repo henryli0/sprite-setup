@@ -24,8 +24,8 @@ if [ "$OS" = "Darwin" ]; then
   fi
 
   echo ""
-  echo ">> Checking dependencies (gh, jq)..."
-  for pkg in gh jq; do
+  echo ">> Checking dependencies (gh, jq, uv)..."
+  for pkg in gh jq uv; do
     if ! command -v "$pkg" &>/dev/null; then
       echo "   Installing $pkg..."
       brew install "$pkg"
@@ -36,7 +36,7 @@ if [ "$OS" = "Darwin" ]; then
 else
   # --- Debian/Ubuntu: dependencies ---
   echo ""
-  echo ">> Checking dependencies (gh, jq)..."
+  echo ">> Checking dependencies (gh, jq, uv)..."
 
   if ! command -v jq &>/dev/null; then
     echo "   Installing jq..."
@@ -54,6 +54,13 @@ else
     sudo apt update && sudo apt install -y gh
   else
     echo "   gh already installed."
+  fi
+
+  if ! command -v uv &>/dev/null; then
+    echo "   Installing uv..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+  else
+    echo "   uv already installed."
   fi
 fi
 
