@@ -33,6 +33,28 @@ if [ "$OS" = "Darwin" ]; then
       echo "   $pkg already installed."
     fi
   done
+else
+  # --- Debian/Ubuntu: dependencies ---
+  echo ""
+  echo ">> Checking dependencies (gh, jq)..."
+
+  if ! command -v jq &>/dev/null; then
+    echo "   Installing jq..."
+    sudo apt update && sudo apt install -y jq
+  else
+    echo "   jq already installed."
+  fi
+
+  if ! command -v gh &>/dev/null; then
+    echo "   Installing gh..."
+    sudo mkdir -p /etc/apt/keyrings
+    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
+    sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+    sudo apt update && sudo apt install -y gh
+  else
+    echo "   gh already installed."
+  fi
 fi
 
 # --- GitHub CLI auth ---
