@@ -27,12 +27,15 @@ dir=$(echo "$input" | jq -r '.workspace.current_dir // ""')
 folder="${dir##*/}"
 pct=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
 
-# Get GitHub remote repo name if available
+# Get GitHub remote repo name and URL if available
 repo=""
+repo_url=""
 if git rev-parse --git-dir > /dev/null 2>&1; then
     remote=$(git remote get-url origin 2>/dev/null || true)
     if [ -n "$remote" ]; then
         repo=$(basename "$remote" .git)
+        # Convert SSH URL to HTTPS for clickable link
+        repo_url=$(echo "$remote" | sed 's|git@github.com:|https://github.com/|' | sed 's|\.git$||')
     fi
 fi
 
@@ -46,10 +49,15 @@ for ((i=0; i<empty; i++)); do bar+="░"; done
 # Build the info section before model
 info=""
 [ -n "$folder" ] && info="${folder}"
-[ -n "$repo" ] && info="${info} (${repo})"
-[ -n "$info" ] && info="${info} | "
+if [ -n "$repo" ] && [ -n "$repo_url" ]; then
+    # OSC 8 clickable link: \e]8;;URL\aTEXT\e]8;;\a
+    info="${info} (\e]8;;${repo_url}\a${repo}\e]8;;\a)"
+elif [ -n "$repo" ]; then
+    info="${info} (${repo})"
+fi
+[ -n "$info" ] && info="${info} "
 
-echo "${info}[$model] ${bar} ${pct}%"
+printf '%b' "${info}[$model] ${bar} ${pct}%\n"
 STATUSLINE
 chmod +x ~/.claude/statusline.sh
 
