@@ -23,16 +23,33 @@ cat > ~/.claude/statusline.sh << 'STATUSLINE'
 input=$(cat)
 
 model=$(echo "$input" | jq -r '.model.display_name // .model.id // "unknown"')
+dir=$(echo "$input" | jq -r '.workspace.current_dir // ""')
+folder="${dir##*/}"
 pct=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
+
+# Get GitHub remote repo name if available
+repo=""
+if git rev-parse --git-dir > /dev/null 2>&1; then
+    remote=$(git remote get-url origin 2>/dev/null || true)
+    if [ -n "$remote" ]; then
+        repo=$(basename "$remote" .git)
+    fi
+fi
 
 bar_width=10
 filled=$((pct * bar_width / 100))
 empty=$((bar_width - filled))
 bar=""
-[ "$filled" -gt 0 ] && bar=$(printf "%${filled}s" | tr ' ' '▓')
-[ "$empty" -gt 0 ] && bar="${bar}$(printf "%${empty}s" | tr ' ' '░')"
+for ((i=0; i<filled; i++)); do bar+="▓"; done
+for ((i=0; i<empty; i++)); do bar+="░"; done
 
-echo "[$model] ${bar} ${pct}%"
+# Build the info section between model and progress bar
+info=""
+[ -n "$folder" ] && info=" ${folder}"
+[ -n "$repo" ] && info="${info} (${repo})"
+[ -n "$info" ] && info="${info} |"
+
+echo "[$model]${info} ${bar} ${pct}%"
 STATUSLINE
 chmod +x ~/.claude/statusline.sh
 
