@@ -3,6 +3,38 @@ set -e
 
 echo "=== Sprite Setup ==="
 
+OS=$(uname -s)
+
+# --- macOS: Homebrew + dependencies ---
+if [ "$OS" = "Darwin" ]; then
+  echo ""
+  echo ">> Checking Homebrew..."
+  if ! command -v brew &>/dev/null; then
+    echo "   Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    # Add brew to PATH for the rest of this script
+    if [ -x /opt/homebrew/bin/brew ]; then
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [ -x /usr/local/bin/brew ]; then
+      eval "$(/usr/local/bin/brew shellenv)"
+    fi
+    echo "   Homebrew installed."
+  else
+    echo "   Already installed."
+  fi
+
+  echo ""
+  echo ">> Checking dependencies (gh, jq)..."
+  for pkg in gh jq; do
+    if ! command -v "$pkg" &>/dev/null; then
+      echo "   Installing $pkg..."
+      brew install "$pkg"
+    else
+      echo "   $pkg already installed."
+    fi
+  done
+fi
+
 # --- GitHub CLI auth ---
 echo ""
 echo ">> Setting up GitHub CLI authentication..."
@@ -18,7 +50,29 @@ echo ">> Setting up Claude Code status line..."
 
 mkdir -p ~/.claude
 
-cat > ~/.claude/statusline.sh << 'STATUSLINE'
+# Check if statusLine is already configured in settings.json
+if [ -f ~/.claude/settings.json ] && jq -e '.statusLine' ~/.claude/settings.json &>/dev/null; then
+  existing=$(jq -r '.statusLine.command // (.statusLine | tostring)' ~/.claude/settings.json)
+  echo "   statusLine is already configured: $existing"
+  read -r -p "   Overwrite it? [y/N] " overwrite_settings
+  if [[ ! "$overwrite_settings" =~ ^[Yy]$ ]]; then
+    echo "   Skipping status line setup."
+    overwrite_settings="n"
+  fi
+else
+  overwrite_settings="y"
+fi
+
+if [[ "$overwrite_settings" =~ ^[Yy]$ ]]; then
+  # Check if statusline.sh already exists
+  if [ -f ~/.claude/statusline.sh ]; then
+    read -r -p "   ~/.claude/statusline.sh already exists. Overwrite it? [y/N] " overwrite_script
+  else
+    overwrite_script="y"
+  fi
+
+  if [[ "$overwrite_script" =~ ^[Yy]$ ]]; then
+    cat > ~/.claude/statusline.sh << 'STATUSLINE'
 #!/bin/bash
 input=$(cat)
 
@@ -57,14 +111,18 @@ fi
 
 printf '%b' "[\e[34m${model}\e[0m] ${bar} ${pct}% | ${info}\n"
 STATUSLINE
-chmod +x ~/.claude/statusline.sh
+    chmod +x ~/.claude/statusline.sh
+    echo "   Installed ~/.claude/statusline.sh"
+  else
+    echo "   Keeping existing ~/.claude/statusline.sh"
+  fi
 
-# Merge statusLine config into settings.json (preserve existing keys)
-if [ -f ~/.claude/settings.json ]; then
-  tmp=$(jq '.statusLine = {"type": "command", "command": "~/.claude/statusline.sh"}' ~/.claude/settings.json)
-  echo "$tmp" > ~/.claude/settings.json
-else
-  cat > ~/.claude/settings.json << 'EOF'
+  # Update settings.json
+  if [ -f ~/.claude/settings.json ]; then
+    tmp=$(jq '.statusLine = {"type": "command", "command": "~/.claude/statusline.sh"}' ~/.claude/settings.json)
+    echo "$tmp" > ~/.claude/settings.json
+  else
+    cat > ~/.claude/settings.json << 'EOF'
 {
   "statusLine": {
     "type": "command",
@@ -72,16 +130,18 @@ else
   }
 }
 EOF
+  fi
+  echo "   Updated ~/.claude/settings.json"
 fi
-
-echo "   Installed ~/.claude/statusline.sh"
-echo "   Updated ~/.claude/settings.json"
 
 # --- glow ---
 echo ""
 echo ">> Installing glow (markdown renderer)..."
 if command -v glow &>/dev/null; then
   echo "   Already installed."
+elif [ "$OS" = "Darwin" ]; then
+  brew install glow
+  echo "   glow installed."
 else
   sudo mkdir -p /etc/apt/keyrings
   curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
