@@ -43,13 +43,13 @@ bar=""
 for ((i=0; i<filled; i++)); do bar+="▓"; done
 for ((i=0; i<empty; i++)); do bar+="░"; done
 
-# Build the info section between model and progress bar
+# Build the info section before model
 info=""
-[ -n "$folder" ] && info=" ${folder}"
+[ -n "$folder" ] && info="${folder}"
 [ -n "$repo" ] && info="${info} (${repo})"
-[ -n "$info" ] && info="${info} |"
+[ -n "$info" ] && info="${info} | "
 
-echo "[$model]${info} ${bar} ${pct}%"
+echo "${info}[$model] ${bar} ${pct}%"
 STATUSLINE
 chmod +x ~/.claude/statusline.sh
 
