@@ -77,6 +77,19 @@ fi
 echo "   Installed ~/.claude/statusline.sh"
 echo "   Updated ~/.claude/settings.json"
 
+# --- glow ---
+echo ""
+echo ">> Installing glow (markdown renderer)..."
+if command -v glow &>/dev/null; then
+  echo "   Already installed."
+else
+  sudo mkdir -p /etc/apt/keyrings
+  curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+  echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
+  sudo apt update && sudo apt install -y glow
+  echo "   glow installed."
+fi
+
 # --- Done ---
 echo ""
 echo "=== Setup complete ==="
