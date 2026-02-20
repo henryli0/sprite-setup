@@ -46,18 +46,16 @@ bar=""
 for ((i=0; i<filled; i++)); do bar+="▓"; done
 for ((i=0; i<empty; i++)); do bar+="░"; done
 
-# Build the info section before model
+# Build the info section after the bar
 info=""
 [ -n "$folder" ] && info="${folder}"
-if [ -n "$repo" ] && [ -n "$repo_url" ]; then
-    # OSC 8 clickable link: \e]8;;URL\aTEXT\e]8;;\a
-    info="${info} (\e]8;;${repo_url}\a${repo}\e]8;;\a)"
+if [ -n "$repo_url" ]; then
+    info="${info} (${repo_url})"
 elif [ -n "$repo" ]; then
     info="${info} (${repo})"
 fi
-[ -n "$info" ] && info="${info} "
 
-printf '%b' "${info}[$model] ${bar} ${pct}%\n"
+printf '%b' "[\e[34m${model}\e[0m] ${bar} ${pct}% | ${info}\n"
 STATUSLINE
 chmod +x ~/.claude/statusline.sh
 
