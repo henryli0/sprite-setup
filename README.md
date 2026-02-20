@@ -1,4 +1,4 @@
-# spriteconfig
+# sprite-setup
 
 Setup script for new Sprite VMs.
 
