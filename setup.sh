@@ -108,7 +108,8 @@ input=$(cat)
 
 model=$(echo "$input" | jq -r '.model.display_name // .model.id // "unknown"')
 dir=$(echo "$input" | jq -r '.workspace.current_dir // ""')
-folder="${dir##*/}"
+# Replace $HOME with ~ for a shorter path
+dir_display="${dir/#$HOME/~}"
 pct=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
 
 # Get GitHub remote repo name and URL if available
@@ -132,7 +133,7 @@ for ((i=0; i<empty; i++)); do bar+="░"; done
 
 # Build the info section after the bar
 info=""
-[ -n "$folder" ] && info="${folder}"
+[ -n "$dir_display" ] && info="${dir_display}"
 if [ -n "$repo_url" ]; then
     info="${info} (${repo_url})"
 elif [ -n "$repo" ]; then
