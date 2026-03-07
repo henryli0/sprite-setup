@@ -110,8 +110,8 @@ input=$(cat)
 
 model=$(echo "$input" | jq -r '.model.display_name // .model.id // "unknown"')
 dir=$(echo "$input" | jq -r '.workspace.current_dir // ""')
-# Replace $HOME with ~ for a shorter path
-dir_display="${dir/#$HOME/~}"
+# Replace home dir with ~ for a shorter path
+dir_display=$(echo "$dir" | sed "s|^$HOME|~|")
 pct=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
 
 # Get GitHub remote repo name and URL if available
