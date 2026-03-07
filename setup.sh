@@ -65,13 +65,15 @@ else
   fi
 fi
 
-# --- GitHub CLI auth ---
+# --- Claude Code ---
 echo ""
-echo ">> Setting up GitHub CLI authentication..."
-if gh auth status &>/dev/null; then
-  echo "   Already authenticated."
+echo ">> Checking Claude Code..."
+if ! command -v claude &>/dev/null; then
+  echo "   Installing Claude Code..."
+  curl -fsSL https://claude.ai/install.sh | bash
+  echo "   Claude Code installed."
 else
-  gh auth login
+  echo "   Already installed."
 fi
 
 # --- Claude Code status line ---
@@ -163,6 +165,15 @@ STATUSLINE
 EOF
   fi
   echo "   Updated ~/.claude/settings.json"
+fi
+
+# --- GitHub CLI auth ---
+echo ""
+echo ">> Setting up GitHub CLI authentication..."
+if gh auth status &>/dev/null; then
+  echo "   Already authenticated."
+else
+  gh auth login
 fi
 
 # --- glow ---
