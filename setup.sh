@@ -174,6 +174,18 @@ current_name=$(git config --global user.name 2>/dev/null || true)
 current_email=$(git config --global user.email 2>/dev/null || true)
 if [ -n "$current_name" ] && [ -n "$current_email" ]; then
   echo "   Already configured: $current_name <$current_email>"
+  read -r -p "   Change it? [y/N] " change_git
+  if [[ "$change_git" =~ ^[Yy]$ ]]; then
+    read -r -p "   Enter your name [$current_name]: " git_name
+    read -r -p "   Enter your email [$current_email]: " git_email
+    git_name="${git_name:-$current_name}"
+    git_email="${git_email:-$current_email}"
+    git config --global user.name "$git_name"
+    git config --global user.email "$git_email"
+    echo "   Git identity set to: $git_name <$git_email>"
+  else
+    echo "   Keeping existing identity."
+  fi
 else
   read -r -p "   Enter your name: " git_name
   read -r -p "   Enter your email: " git_email
