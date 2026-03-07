@@ -174,12 +174,7 @@ current_name=$(git config --global user.name 2>/dev/null || true)
 current_email=$(git config --global user.email 2>/dev/null || true)
 if [ -n "$current_name" ] && [ -n "$current_email" ]; then
   echo "   Already configured: $current_name <$current_email>"
-  read -r -p "   Overwrite? [y/N] " overwrite_git
-  if [[ ! "$overwrite_git" =~ ^[Yy]$ ]]; then
-    echo "   Skipping git config."
-  fi
-fi
-if [ -z "$current_name" ] || [ -z "$current_email" ] || [[ "$overwrite_git" =~ ^[Yy]$ ]]; then
+else
   read -r -p "   Enter your name: " git_name
   read -r -p "   Enter your email: " git_email
   git config --global user.name "$git_name"
