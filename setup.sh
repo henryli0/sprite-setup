@@ -58,7 +58,8 @@ else
 
   if ! command -v uv &>/dev/null; then
     echo "   Installing uv..."
-    curl -LsSf https://astral.sh/uv/install.sh | sh < /dev/null
+    uv_installer=$(curl -LsSf https://astral.sh/uv/install.sh)
+    bash -c "$uv_installer" < /dev/null
     export PATH="$HOME/.local/bin:$PATH"
   else
     echo "   uv already installed."
