@@ -11,7 +11,7 @@ if [ "$OS" = "Darwin" ]; then
   echo ">> Checking Homebrew..."
   if ! command -v brew &>/dev/null; then
     echo "   Installing Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" < /dev/tty
     # Add brew to PATH for the rest of this script
     if [ -x /opt/homebrew/bin/brew ]; then
       eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -28,7 +28,7 @@ if [ "$OS" = "Darwin" ]; then
   for pkg in gh jq uv; do
     if ! command -v "$pkg" &>/dev/null; then
       echo "   Installing $pkg..."
-      brew install "$pkg"
+      brew install "$pkg" < /dev/null
     else
       echo "   $pkg already installed."
     fi
@@ -40,7 +40,7 @@ else
 
   if ! command -v jq &>/dev/null; then
     echo "   Installing jq..."
-    sudo apt update && sudo apt install -y jq
+    sudo apt update && sudo apt install -y jq < /dev/null
   else
     echo "   jq already installed."
   fi
@@ -51,14 +51,14 @@ else
     curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
     sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-    sudo apt update && sudo apt install -y gh
+    sudo apt update && sudo apt install -y gh < /dev/null
   else
     echo "   gh already installed."
   fi
 
   if ! command -v uv &>/dev/null; then
     echo "   Installing uv..."
-    curl -LsSf https://astral.sh/uv/install.sh | sh
+    curl -LsSf https://astral.sh/uv/install.sh | sh < /dev/null
     export PATH="$HOME/.local/bin:$PATH"
   else
     echo "   uv already installed."
@@ -70,7 +70,8 @@ echo ""
 echo ">> Checking Claude Code..."
 if ! command -v claude &>/dev/null; then
   echo "   Installing Claude Code..."
-  curl -fsSL https://claude.ai/install.sh | bash
+  claude_installer=$(curl -fsSL https://claude.ai/install.sh)
+  bash -c "$claude_installer" < /dev/null
   echo "   Claude Code installed."
 else
   echo "   Already installed."
@@ -86,7 +87,7 @@ mkdir -p ~/.claude
 if [ -f ~/.claude/settings.json ] && jq -e '.statusLine' ~/.claude/settings.json &>/dev/null; then
   existing=$(jq -r '.statusLine.command // (.statusLine | tostring)' ~/.claude/settings.json)
   echo "   statusLine is already configured: $existing"
-  read -r -p "   Overwrite it? [y/N] " overwrite_settings
+  read -r -p "   Overwrite it? [y/N] " overwrite_settings < /dev/tty
   if [[ ! "$overwrite_settings" =~ ^[Yy]$ ]]; then
     echo "   Skipping status line setup."
     overwrite_settings="n"
@@ -98,7 +99,7 @@ fi
 if [[ "$overwrite_settings" =~ ^[Yy]$ ]]; then
   # Check if statusline.sh already exists
   if [ -f ~/.claude/statusline.sh ]; then
-    read -r -p "   ~/.claude/statusline.sh already exists. Overwrite it? [y/N] " overwrite_script
+    read -r -p "   ~/.claude/statusline.sh already exists. Overwrite it? [y/N] " overwrite_script < /dev/tty
   else
     overwrite_script="y"
   fi
@@ -174,10 +175,10 @@ current_name=$(git config --global user.name 2>/dev/null || true)
 current_email=$(git config --global user.email 2>/dev/null || true)
 if [ -n "$current_name" ] && [ -n "$current_email" ]; then
   echo "   Already configured: $current_name <$current_email>"
-  read -r -p "   Change it? [y/N] " change_git
+  read -r -p "   Change it? [y/N] " change_git < /dev/tty
   if [[ "$change_git" =~ ^[Yy]$ ]]; then
-    read -r -p "   Enter your name [$current_name]: " git_name
-    read -r -p "   Enter your email [$current_email]: " git_email
+    read -r -p "   Enter your name [$current_name]: " git_name < /dev/tty
+    read -r -p "   Enter your email [$current_email]: " git_email < /dev/tty
     git_name="${git_name:-$current_name}"
     git_email="${git_email:-$current_email}"
     git config --global user.name "$git_name"
@@ -187,8 +188,8 @@ if [ -n "$current_name" ] && [ -n "$current_email" ]; then
     echo "   Keeping existing identity."
   fi
 else
-  read -r -p "   Enter your name: " git_name
-  read -r -p "   Enter your email: " git_email
+  read -r -p "   Enter your name: " git_name < /dev/tty
+  read -r -p "   Enter your email: " git_email < /dev/tty
   git config --global user.name "$git_name"
   git config --global user.email "$git_email"
   echo "   Git identity set to: $git_name <$git_email>"
@@ -200,7 +201,7 @@ echo ">> Setting up GitHub CLI authentication..."
 if gh auth status &>/dev/null; then
   echo "   Already authenticated."
 else
-  gh auth login
+  gh auth login --web < /dev/tty
 fi
 
 # --- glow ---
@@ -209,13 +210,13 @@ echo ">> Installing glow (markdown renderer)..."
 if command -v glow &>/dev/null; then
   echo "   Already installed."
 elif [ "$OS" = "Darwin" ]; then
-  brew install glow
+  brew install glow < /dev/null
   echo "   glow installed."
 else
   sudo mkdir -p /etc/apt/keyrings
   curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
   echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
-  sudo apt update && sudo apt install -y glow
+  sudo apt update && sudo apt install -y glow < /dev/null
   echo "   glow installed."
 fi
 
