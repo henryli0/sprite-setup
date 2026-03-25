@@ -66,6 +66,33 @@ else
   fi
 fi
 
+# --- Node.js (via nvm) ---
+echo ""
+echo ">> Checking Node.js (via nvm)..."
+if command -v nvm &>/dev/null || [ -s "$HOME/.nvm/nvm.sh" ]; then
+  # Source nvm if not already a function
+  if ! command -v nvm &>/dev/null; then
+    \. "$HOME/.nvm/nvm.sh"
+  fi
+  echo "   nvm already installed ($(nvm --version))."
+  if command -v node &>/dev/null; then
+    echo "   Node.js already installed ($(node -v))."
+  else
+    echo "   Installing Node.js 24..."
+    nvm install 24
+    echo "   Node.js $(node -v) installed."
+  fi
+else
+  echo "   Installing nvm..."
+  nvm_installer=$(curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh)
+  bash -c "$nvm_installer" < /dev/null
+  \. "$HOME/.nvm/nvm.sh"
+  echo "   nvm installed ($(nvm --version))."
+  echo "   Installing Node.js 24..."
+  nvm install 24
+  echo "   Node.js $(node -v) installed (npm $(npm -v))."
+fi
+
 # --- Claude Code ---
 echo ""
 echo ">> Checking Claude Code..."
