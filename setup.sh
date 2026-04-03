@@ -84,8 +84,7 @@ if command -v nvm &>/dev/null || [ -s "$HOME/.nvm/nvm.sh" ]; then
   fi
 else
   echo "   Installing nvm..."
-  nvm_installer=$(curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh)
-  bash -c "$nvm_installer" < /dev/null
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | PROFILE=/dev/null bash < /dev/null
   \. "$HOME/.nvm/nvm.sh"
   echo "   nvm installed ($(nvm --version))."
   echo "   Installing Node.js 24..."
